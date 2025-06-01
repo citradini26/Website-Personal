@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemQuest: Petualangan Asam Basa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .game-title {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffd700, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .player-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 15px;
+            margin: 5px;
+            min-width: 120px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .level-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .level-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .question-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            backdrop-filter: blur(5px);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .option-btn {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            animation: pulse 0.5s;
+        }
+
+        .option-btn.wrong {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            animation: shake 0.5s;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .ph-meter {
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #0000ff, #800080);
+            height: 30px;
+            border-radius: 15px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .ph-indicator {
+            position: absolute;
+            top: -10px;
+            width: 20px;
+            height: 50px;
+            background: white;
+            border-radius: 10px;
+            transition: left 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .titration-simulator {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .beaker {
+            width: 200px;
+            height: 250px;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0,150,255,0.6) 50%);
+            border: 4px solid #ddd;
+            border-radius: 0 0 50px 50px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .solution {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #ff6b6b, #ffd93d);
+            transition: all 0.5s ease;
+            border-radius: 0 0 46px 46px;
+        }
+
+        .buret {
+            width: 20px;
+            height: 100px;
+            background: linear-gradient(to bottom, #4facfe, #00f2fe);
+            margin: 0 auto 10px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .drop {
+            width: 10px;
+            height: 10px;
+            background: #00f2fe;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -15px;
+            left: 5px;
+            animation: drop 1s infinite;
+        }
+
+        @keyframes drop {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(20px); opacity: 0; }
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .control-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+
+        .feedback {
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            margin: 5px;
+            font-weight: bold;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 10px rgba(255,215,0,0.5); }
+            to { box-shadow: 0 0 20px rgba(255,215,0,0.8); }
+        }
+
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            height: 100%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .mistake-beauty {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            color: #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #ff6b6b;
+        }
+
+        .avatar-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff9a9e, #fecfef, #a8edea, #fed6e3);
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .game-title {
+                font-size: 2em;
+            }
+            
+            .player-stats {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="game-title">🧪 ChemQuest: Petualangan Asam Basa</h1>
+            <p>Dimana setiap kesalahan adalah pelajaran yang indah!</p>
+            
+            <div class="avatar-container">
+                <div class="avatar" id="playerAvatar">🧑‍🔬</div>
+                <div>Ahli Kimia Muda</div>
+            </div>
+            
+            <div class="player-stats">
+                <div class="stat-card">
+                    <div>💎 XP</div>
+                    <div id="xp">0</div>
+                </div>
+                <div class="stat-card">
+                    <div>❤️ Nyawa</div>
+                    <div id="lives">3</div>
+                </div>
+                <div class="stat-card">
+                    <div>⭐ Level</div>
+                    <div id="currentLevel">1</div>
+                </div>
+                <div class="stat-card">
+                    <div>🏆 Skor</div>
+                    <div id="score">0</div>
+                </div>
+            </div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Level 1: Konsep Dasar -->
+        <div class="level-container" id="level1">
+            <h2 class="level-title">🎯 Level 1: Teori Asam Basa</h2>
+            <div class="question-card" id="question1">
+                <h3>Menurut teori Brønsted-Lowry, asam adalah zat yang:</h3>
+                <div class="options-grid">
+                    <button class="option-btn" onclick="checkAnswer(1, false, this)">Menghasilkan ion H⁺ dalam air</button>
+                    <button class="option-btn" onclick="checkAnswer(1, true, this)">Memberikan proton (H⁺)</button>
+                    <button class="option-btn" onclick="checkAnswer(1, false, this)">Menerima pasangan elektron</button>
+                    <button class="option-btn" onclick="checkAnswer(1, false, this)">Menghasilkan ion OH⁻</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 2: pH Meter -->
+        <div class="level-container" id="level2" style="display: none;">
+            <h2 class="level-title">🌈 Level 2: Mengukur pH</h2>
+            <div class="question-card">
+                <h3>Tentukan pH larutan HCl 0.01 M</h3>
+                <div class="ph-meter">
+                    <div class="ph-indicator" id="phIndicator"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin: 10px 0;">
+                    <span>0 (Sangat Asam)</span>
+                    <span>7 (Netral)</span>
+                    <span>14 (Sangat Basa)</span>
+                </div>
+                <div class="options-grid">
+                    <button class="option-btn" onclick="checkpH(1, false, this)">pH = 1</button>
+                    <button class="option-btn" onclick="checkpH(2, true, this)">pH = 2</button>
+                    <button class="option-btn" onclick="checkpH(12, false, this)">pH = 12</button>
+                    <button class="option-btn" onclick="checkpH(7, false, this)">pH = 7</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 3: Titrasi -->
+        <div class="level-container" id="level3" style="display: none;">
+            <h2 class="level-title">⚗️ Level 3: Simulasi Titrasi</h2>
+            <div class="titration-simulator">
+                <div class="buret">
+                    <div class="drop" id="drop"></div>
+                </div>
+                <div class="beaker">
+                    <div class="solution" id="solution" style="height: 60%;"></div>
+                </div>
+                <div class="control-panel">
+                    <button class="control-btn" onclick="addTitrant()">Tambah Titran</button>
+                    <button class="control-btn" onclick="checkTitration()">Cek Titik Ekuivalen</button>
+                </div>
+                <div id="titrationResult"></div>
+            </div>
+        </div>
+
+        <!-- Level 4: Tantangan Dunia Nyata -->
+        <div class="level-container" id="level4" style="display: none;">
+            <h2 class="level-title">🌍 Level 4: Aplikasi Dunia Nyata</h2>
+            <div class="question-card">
+                <h3>Seorang petani mengeluh tanah sawahnya terlalu asam (pH = 4). Apa solusi terbaik?</h3>
+                <div class="options-grid">
+                    <button class="option-btn" onclick="checkRealWorld(true, this)">Menambahkan kapur (CaO)</button>
+                    <button class="option-btn" onclick="checkRealWorld(false, this)">Menambahkan pupuk asam</button>
+                    <button class="option-btn" onclick="checkRealWorld(false, this)">Menambahkan garam dapur</button>
+                    <button class="option-btn" onclick="checkRealWorld(false, this)">Tidak perlu tindakan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Area -->
+        <div class="feedback" id="feedback" style="display: none;"></div>
+        
+        <!-- Badges -->
+        <div id="badges" style="text-align: center; margin: 20px 0;"></div>
+    </div>
+
+    <script>
+        let gameState = {
+            xp: 0,
+            lives: 3,
+            currentLevel: 1,
+            score: 0,
+            badges: [],
+            mistakes: [],
+            titrantVolume: 0
+        };
+
+        function updateStats() {
+            document.getElementById('xp').textContent = gameState.xp;
+            document.getElementById('lives').textContent = gameState.lives;
+            document.getElementById('currentLevel').textContent = gameState.currentLevel;
+            document.getElementById('score').textContent = gameState.score;
+            
+            const progressPercent = (gameState.currentLevel - 1) * 25;
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+        }
+
+        function checkAnswer(level, isCorrect, button) {
+            const allButtons = button.parentElement.querySelectorAll('.option-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                button.classList.add('correct');
+                gameState.xp += 50;
+                gameState.score += 100;
+                showFeedback("🎉 Benar! Brønsted-Lowry mendefinisikan asam sebagai donor proton!", "success");
+                setTimeout(() => nextLevel(), 2000);
+                
+                if (level === 1) {
+                    addBadge("🧠 Ahli Teori");
+                }
+            } else {
+                button.classList.add('wrong');
+                gameState.lives--;
+                gameState.mistakes.push({
+                    level: level,
+                    question: "Teori Brønsted-Lowry",
+                    learning: "Asam = donor proton, Basa = akseptor proton"
+                });
+                showMistakeBeauty("Kesalahan adalah guru terbaik! 💫", 
+                    "Teori Brønsted-Lowry: Asam memberikan H⁺, basa menerima H⁺. Berbeda dengan Arrhenius yang hanya berlaku di air.");
+                
+                if (gameState.lives > 0) {
+                    setTimeout(() => {
+                        allButtons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('wrong');
+                        });
+                    }, 3000);
+                } else {
+                    showGameOver();
+                }
+            }
+            updateStats();
+        }
+
+        function checkpH(pH, isCorrect, button) {
+            const indicator = document.getElementById('phIndicator');
+            const position = (pH / 14) * 100;
+            indicator.style.left = position + '%';
+            
+            const allButtons = button.parentElement.querySelectorAll('.option-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                button.classList.add('correct');
+                gameState.xp += 75;
+                gameState.score += 150;
+                showFeedback("🌈 Sempurna! HCl 0.01 M = 10⁻² M, jadi pH = 2", "success");
+                setTimeout(() => nextLevel(), 2000);
+                addBadge("📊 Master pH");
+            } else {
+                button.classList.add('wrong');
+                gameState.lives--;
+                gameState.mistakes.push({
+                    level: 2,
+                    question: "Perhitungan pH",
+                    learning: "pH = -log[H⁺]. Untuk asam kuat, [H⁺] = konsentrasi asam"
+                });
+                showMistakeBeauty("Matematika kimia butuh latihan! 🔢", 
+                    "Rumus: pH = -log[H⁺]. HCl 0.01 M → [H⁺] = 0.01 = 10⁻² → pH = 2");
+                
+                if (gameState.lives > 0) {
+                    setTimeout(() => {
+                        allButtons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.classList.remove('wrong');
+                        });
+                    }, 3000);
+                }
+            }
+            updateStats();
+        }
+
+        function addTitrant() {
+            gameState.titrantVolume += 5;
+            const solution = document.getElementById('solution');
+            const newHeight = Math.max(20, 60 - gameState.titrantVolume);
+            solution.style.height = newHeight + '%';
+            
+            // Change color as we approach equivalence point
+            const hue = Math.max(0, 240 - gameState.titrantVolume * 8);
+            solution.style.background = `hsl(${hue}, 70%, 60%)`;
+            
+            // Show drop animation
+            const drop = document.getElementById('drop');
+            drop.style.animation = 'none';
+            setTimeout(() => drop.style.animation = 'drop 1s infinite', 10);
+        }
+
+        function checkTitration() {
+            const result = document.getElementById('titrationResult');
+            if (gameState.titrantVolume >= 25 && gameState.titrantVolume <= 35) {
+                result.innerHTML = `
+                    <div class="feedback">
+                        🎯 Excellent! Titik ekuivalen tercapai pada ${gameState.titrantVolume} mL
+                        <br>Warna berubah karena indikator fenolftalein!
+                    </div>
+                `;
+                gameState.xp += 100;
+                gameState.score += 200;
+                addBadge("⚗️ Ahli Titrasi");
+                setTimeout(() => nextLevel(), 2000);
+            } else {
+                result.innerHTML = `
+                    <div class="mistake-beauty">
+                        💡 Belum tepat! Titik ekuivalen biasanya di sekitar 25-30 mL
+                        <br>Coba tambah atau kurangi titran
+                    </div>
+                `;
+                gameState.lives--;
+            }
+            updateStats();
+        }
+
+        function checkRealWorld(isCorrect, button) {
+            const allButtons = button.parentElement.querySelectorAll('.option-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                button.classList.add('correct');
+                gameState.xp += 125;
+                gameState.score += 250;
+                showFeedback("🌾 Brilian! CaO + H₂O → Ca(OH)₂ yang akan menetralkan asam tanah!", "success");
+                addBadge("🌍 Penyelamat Lingkungan");
+                setTimeout(() => showCompletion(), 2000);
+            } else {
+                button.classList.add('wrong');
+                gameState.lives--;
+                showMistakeBeauty("Aplikasi kimia di pertanian! 🚜", 
+                    "Tanah asam butuh basa untuk dinetralisir. Kapur (CaO) bereaksi dengan air membentuk Ca(OH)₂ yang bersifat basa.");
+            }
+            updateStats();
+        }
+
+        function nextLevel() {
+            document.getElementById(`level${gameState.currentLevel}`).style.display = 'none';
+            gameState.currentLevel++;
+            
+            if (gameState.currentLevel <= 4) {
+                document.getElementById(`level${gameState.currentLevel}`).style.display = 'block';
+                updateStats();
+            }
+        }
+
+        function showFeedback(message, type) {
+            const feedback = document.getElementById('feedback');
+            feedback.innerHTML = message;
+            feedback.style.display = 'block';
+            feedback.style.background = type === 'success' ? 
+                'rgba(86, 171, 47, 0.8)' : 'rgba(255, 107, 107, 0.8)';
+        }
+
+        function showMistakeBeauty(title, explanation) {
+            const feedback = document.getElementById('feedback');
+            feedback.innerHTML = `
+                <div class="mistake-beauty">
+                    <h3>${title}</h3>
+                    <p>${explanation}</p>
+                    <small>✨ Setiap kesalahan membuat kita lebih bijak!</small>
+                </div>
+            `;
+            feedback.style.display = 'block';
+        }
+
+        function addBadge(badgeText) {
+            if (!gameState.badges.includes(badgeText)) {
+                gameState.badges.push(badgeText);
+                const badgesContainer = document.getElementById('badges');
+                const badge = document.createElement('span');
+                badge.className = 'badge';
+                badge.textContent = badgeText;
+                badgesContainer.appendChild(badge);
+            }
+        }
+
+        function showCompletion() {
+            const feedback = document.getElementById('feedback');
+            const mistakesList = gameState.mistakes.map(m => 
+                `<li><strong>${m.question}:</strong> ${m.learning}</li>`
+            ).join('');
+            
+            feedback.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <h2>🎊 Selamat! Quest Selesai! 🎊</h2>
+                    <p>Total XP: ${gameState.xp} | Skor Akhir: ${gameState.score}</p>
+                    <div style="margin: 20px 0;">
+                        <h3>🏆 Badge yang Diraih:</h3>
+                        ${gameState.badges.map(badge => `<span class="badge">${badge}</span>`).join('')}
+                    </div>
+                    ${gameState.mistakes.length > 0 ? `
+                        <div class="mistake-beauty">
+                            <h3>💎 Pelajaran Berharga dari Kesalahan:</h3>
+                            <ul style="text-align: left; margin: 10px 0;">
+                                ${mistakesList}
+                            </ul>
+                            <p><em>"Kesalahan adalah permata pembelajaran yang paling indah!"</em></p>
+                        </div>
+                    ` : ''}
+                    <button class="control-btn" onclick="location.reload()">🔄 Main Lagi</button>
+                </div>
+            `;
+            feedback.style.display = 'block';
+        }
+
+        function showGameOver() {
+            const feedback = document.getElementById('feedback');
+            feedback.innerHTML = `
+                <div style="text-align: center; padding: 30px;">
+                    <h2>💔 Game Over</h2>
+                    <p>Jangan menyerah! Setiap ahli kimia pernah membuat kesalahan.</p>
+                    <div class="mistake-beauty">
+                        <h3>🌟 Yang Sudah Dipelajari:</h3>
+                        <ul style="text-align: left;">
+                            ${gameState.mistakes.map(m => `<li>${m.learning}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <button class="control-btn" onclick="location.reload()">🔄 Coba Lagi</button>
+                </div>
+            `;
+            feedback.style.display = 'block';
+        }
+
+        // Initialize game
+        updateStats();
+        
+        // Add some personality to avatar
+        const avatars = ['🧑‍🔬', '👩‍🔬', '🤓', '🧪', '⚗️'];
+        setInterval(() => {
+            const avatar = document.getElementById('playerAvatar');
+            avatar.textContent = avatars[Math.floor(Math.random() * avatars.length)];
+        }, 10000);
+    </script>
+</body>
+</html>
